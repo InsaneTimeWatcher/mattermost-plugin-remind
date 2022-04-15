@@ -154,8 +154,7 @@ func (p *Plugin) categorizeOccurrences(reminders []Reminder) (
 				((occurrence.Repeat == "" && isFuture) ||
 					(s != p.emptyTime && s.After(time.Now().UTC()))) {
 				upcomingOccurrences = append(upcomingOccurrences, occurrence)
-			} else if !isChannelReminder &&
-				occurrence.Repeat != "" && isFuture {
+			} else if occurrence.Repeat != "" && isFuture {
 				recurringOccurrences = append(recurringOccurrences, occurrence)
 			} else if !isCompleted &&
 				isPast &&

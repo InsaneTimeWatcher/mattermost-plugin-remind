@@ -99,6 +99,23 @@ func TestListReminders(t *testing.T) {
 		Completed: p.emptyTime,
 	}
 
+	channelRecurringReminder := Reminder{
+		Id:          model.NewId(),
+		Username:    user.Username,
+		Target:      "~" + publicChannel.Name,
+		Message:     "This reminder triggers in a channel several times",
+		When:        "every Tuesday at 10:00AM",
+		Occurrences: []Occurrence{
+			{
+				Id:         model.NewId(),
+				ReminderId: model.NewId(),
+				Repeat:     "every Tuesday at 10:00AM",
+				Occurrence: futureOccurrenceDate,
+			},
+		},
+		Completed: p.emptyTime,
+	}
+
 	setupAPI := func(reminders []Reminder) *plugintest.API {
 		serializedReminders, _ := json.Marshal(reminders)
 		api := &plugintest.API{}
@@ -125,6 +142,16 @@ func TestListReminders(t *testing.T) {
 		assert.Contains(t, attachments[2].Text, T("list.past.and.incomplete"), "The next displayed reminders must be past and incomplete reminders")
 		assert.Contains(t, attachments[3].Text, T("list.channel"), "The next displayed reminders must be channel reminders")
 		assert.Contains(t, attachments[len(attachments)-1].Text, T("reminders.page.numbers"), "The last attachment must be list pagination and controls")
+	})
+
+	t.Run("the list categorizes channel-and-recurring reminders with recurring reminders", func(t *testing.T) {
+		reminders := []Reminder { channelRecurringReminder }
+		p.API = setupAPI(reminders)
+
+		post := p.ListReminders(user, originChannel.Id)
+
+		attachments := post.Attachments()
+		assert.Contains(t, attachments[0].Text, T("list.recurring"), "Reminders both channel and recurring must be categorized with recurring reminders")
 	})
 }
 
